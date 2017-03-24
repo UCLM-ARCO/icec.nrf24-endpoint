@@ -3,3 +3,13 @@ syntax: glob
 *.o
 *~
 *.zip
+
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+
+arduino/examples/mowayduino-server/lib/IceC
+arduino/examples/mowayduino-server/lib/mowayduino
+arduino/examples/mowayduino-server/lib/RF24
+arduino/examples/mowayduino-server/src/robot.h
