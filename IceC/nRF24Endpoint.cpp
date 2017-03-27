@@ -1,24 +1,32 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-#include <RF24.h>
+
+// #include <RF24.h>
+#include <Arduino.h>
+#include <IceC/IceUtil.h>
 #include "nRF24Endpoint.h"
+
+#ifndef MAX_NRF24_ENDPOINT_INSTANCES
+#define MAX_NRF24_ENDPOINT_INSTANCES 3
+#endif
 
 static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
+static nRF24Endpoint_Options ep_options[MAX_NRF24_ENDPOINT_INSTANCES];
 
-static RF24* radio = NULL;
+// static RF24* radio = NULL;
 static byte rf_ce_pin;
 static byte rf_cs_pin;
 
 int
 nRF24_init() {
-    if (radio == NULL) {
-        static RF24 _radio(rf_ce_pin, rf_cs_pin);
-        radio = &_radio;
-
-        radio->begin();
-        radio->setPALevel(RF24_PA_LOW);
-    }
+    // if (radio == NULL) {
+    //     static RF24 _radio(rf_ce_pin, rf_cs_pin);
+    //     radio = &_radio;
+    //
+    //     radio->begin();
+    //     radio->setPALevel(RF24_PA_LOW);
+    // }
     return 1;
 }
 
@@ -53,7 +61,9 @@ nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType
 }
 
 bool
-nRF24Endpoint_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
+nRF24Endpoint_Connection_send(
+    Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
+
     return false;
 /*     trace(); */
 
@@ -66,28 +76,62 @@ nRF24Endpoint_Connection_send(Ice_ConnectionPtr self, int fd, byte* data, uint16
 
 bool
 nRF24Endpoint_Connection_dataReady(Ice_ConnectionPtr self, bool* ready) {
+    trace();
 
-    return false;
-/*     trace(); */
-/*     if (self->epinfo->type != Ice_EndpointTypenRF24) */
-/* 	return false; */
+    // print_dbg("nrf DR called\n");
+    if (self->epinfo->type != Ice_EndpointTypenRF24)
+        return false;
 
-/*     *ready = nRF24_available(); */
-/*     return true; */
+    /* *ready = nRF24_available(); */
+    *ready = false;
+
+    return true;
+}
+
+nRF24Endpoint_OptionsPtr
+_get_options_slot() {
+    byte i;
+
+    nRF24Endpoint_OptionsPtr retval = NULL;
+    for (i=0; i<MAX_NRF24_ENDPOINT_INSTANCES; i++) {
+        if (ep_options[i].used)
+            continue;
+        retval = &(ep_options[i]);
+	    break;
+    }
+
+    assert(retval != NULL && "Max number of endpoints reached!");
+    return retval;
 }
 
 bool
 nRF24Endpoint_EndpointInfo_init(
-    Ice_EndpointInfoPtr self, Ice_EndpointType type, const char* endpoint) {
+    Ice_EndpointInfoPtr self, Ice_EndpointType type, const char* str_endp) {
     trace();
 
     if (type != Ice_EndpointTypenRF24)
         return false;
 
+    nRF24Endpoint_OptionsPtr options = _get_options_slot();
+    Ptr_check(options);
+
     self->type = type;
     self->datagram = true;
-    Object_init((ObjectPtr)self);
+    self->options = options;
+    options->used = true;
 
+    byte channel;
+    IceUtil_getByteParam(str_endp, &channel, 'c');
+    options->channel = 100;
+
+    FIXME: uncommenting the following line, causes errors!!!
+    // options->channel = channel;
+
+    for (byte i=0; i<6; i++)
+        options->address[i] = 0;
+    // IceUtil_getStringParam(endpoint, (char*)options->address, 'a');
+
+    Object_init((ObjectPtr)self);
     return true;
 }
 
@@ -116,8 +160,12 @@ nRF24Endpoint_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
     self->connection.fd = nRF24_init();
 
     // setup RF24 reading pipe, setup channel and address from adapter settings
-    FIXME: working here
-    
+    // nRF24Endpoint_OptionsPtr options =
+    //     (nRF24Endpoint_OptionsPtr)self->epinfo.options;
+    // radio->setChannel(options->channel);
+    // radio->openReadingPipe(1, options->address);
+    // radio->startListening();
+
     return true;
 }
 
@@ -168,6 +216,11 @@ nRF24Endpoint_init(Ice_CommunicatorPtr ic, byte ce_pin, byte cs_pin) {
     rf_ce_pin = ce_pin;
     rf_cs_pin = cs_pin;
 
+    for (byte i=0; i<MAX_NRF24_ENDPOINT_INSTANCES; i++) {
+        ep_options[i].used = false;
+        Object_init((ObjectPtr)&ep_options[i]);
+    }
+
     endpoint.getProtocolType = &nRF24Endpoint_getProtocolType;
     endpoint.InputStream_init = &nRF24Endpoint_InputStream_init;
     endpoint.Connection_accept = NULL;
@@ -175,7 +228,8 @@ nRF24Endpoint_init(Ice_CommunicatorPtr ic, byte ce_pin, byte cs_pin) {
     endpoint.Connection_close = NULL;
     endpoint.Connection_dataReady = &nRF24Endpoint_Connection_dataReady;
     endpoint.EndpointInfo_init = &nRF24Endpoint_EndpointInfo_init;
-    endpoint.EndpointInfo_writeToOutputStream = &nRF24Endpoint_EndpointInfo_writeToOutputStream;
+    endpoint.EndpointInfo_writeToOutputStream =
+        &nRF24Endpoint_EndpointInfo_writeToOutputStream;
     endpoint.EndpointInfo_readFromInputStream = NULL;
     endpoint.ObjectAdapter_activate = &nRF24Endpoint_ObjectAdapter_activate;
     endpoint.ObjectPrx_init = &nRF24Endpoint_ObjectPrx_init;

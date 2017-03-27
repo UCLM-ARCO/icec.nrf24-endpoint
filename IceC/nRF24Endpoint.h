@@ -11,6 +11,16 @@ extern "C" {
 
 #define Ice_EndpointTypenRF24 15
 
+typedef struct nRF24Endpoint_Options {
+    Object _base;
+
+    byte channel;
+    byte address[6];
+    bool used;
+} nRF24Endpoint_Options;
+
+typedef nRF24Endpoint_Options* nRF24Endpoint_OptionsPtr;
+
 bool nRF24Endpoint_getProtocolType(const char* proto, Ice_EndpointType* result);
 bool nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type);
 bool nRF24Endpoint_ObjectAdapter_activate(Ice_ObjectAdapterPtr self);

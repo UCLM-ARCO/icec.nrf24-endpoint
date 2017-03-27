@@ -4,13 +4,12 @@ Description
 This is an endpoint for IceC using a nRF24 transceiver, connected by
 SPI interface. The endpoint type is `nrf24`, and it has two
 parameters, `-c`, which is the channel where the nRF will listen, and
-`-a`, the device address (up to 5 ascii chars). Thus, an stringfied
+`-a`, the device address (up to 5 ascii chars). Thus, a stringfied
 proxy should look like the following:
 
-    Car -e 1.0 -d:nrf24 -c 100 -a car1
+    Car -e 1.0 -d:nrf24 -c 100 -a car01
 
-See `example` dir for an example of its usage and configuration
-sample files.
+See `example` dir for an example of its usage.
 
 
 Arduino package
