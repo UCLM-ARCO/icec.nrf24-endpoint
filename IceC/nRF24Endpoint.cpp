@@ -42,21 +42,35 @@ nRF24Endpoint_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
 bool
 nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
-/*    uint32_t size = 0; */
+    uint32_t size = 0;
 
-    /* if (type != Ice_EndpointTypenRF24) */
+    if (type != Ice_EndpointTypenRF24)
 	   return false;
 
-/*     /\* first: read header, and get message size *\/ */
-/*     self->size = nRF24_read((byte*)self->data, 14); */
-/*     size = (uint32_t)*(self->data + 10); */
+    /* first: read header, and get message size */
+    radio->read((byte*)self->data, 14);
+    self->size = 14;
+    size = (uint32_t)*(self->data + 10);
 
-/*     /\* then: read as size specifies *\/ */
-/*     size -= 14; */
-/*     assert(size <= MAX_MESSAGE_SIZE && "Message too big!"); */
+    print_dbg("Message size: ");
+    printi_dbg(size);
+    print_dbg("\n");
 
-/*     self->size += nRF24_read((byte*)(self->data + 14), size); */
-/*     return true; */
+    // FIXME: if message is bigger than 32, implement a fragmentation protocol
+    // 'N'
+    // node id (1 bye) - random, selected at boot
+    // size (1 bye) - this message payload's size
+    // frame identifier (1 byte)
+    // total count of frames (1 byte)
+    ---    
+
+    /* then: read as size specifies */
+    assert(size <= MAX_MESSAGE_SIZE && "Message too big!");
+    size -= 14;
+
+    radio->read((byte*)(self->data + 14), size);
+    self->size += size;
+    return true;
 }
 
 bool
