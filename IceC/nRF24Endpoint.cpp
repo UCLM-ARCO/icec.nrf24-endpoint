@@ -1,7 +1,6 @@
 /* -*- mode: c; coding: utf-8 -*- */
 
-
-// #include <RF24.h>
+#include <RF24.h>
 #include <Arduino.h>
 #include <IceC/IceUtil.h>
 #include "nRF24Endpoint.h"
@@ -14,19 +13,19 @@ static IcePlugin_PluginListItem item;
 static IcePlugin_EndpointObject endpoint;
 static nRF24Endpoint_Options ep_options[MAX_NRF24_ENDPOINT_INSTANCES];
 
-// static RF24* radio = NULL;
+static RF24* radio = NULL;
 static byte rf_ce_pin;
 static byte rf_cs_pin;
 
 int
 nRF24_init() {
-    // if (radio == NULL) {
-    //     static RF24 _radio(rf_ce_pin, rf_cs_pin);
-    //     radio = &_radio;
-    //
-    //     radio->begin();
-    //     radio->setPALevel(RF24_PA_LOW);
-    // }
+    if (radio == NULL) {
+        static RF24 _radio(rf_ce_pin, rf_cs_pin);
+        radio = &_radio;
+
+        radio->begin();
+        radio->setPALevel(RF24_PA_LOW);
+    }
     return 1;
 }
 
@@ -64,27 +63,27 @@ bool
 nRF24Endpoint_Connection_send(
     Ice_ConnectionPtr self, int fd, byte* data, uint16_t* size) {
 
-    return false;
-/*     trace(); */
+    trace();
 
-/*     if (self->epinfo->type != Ice_EndpointTypenRF24) */
-/* 	return false; */
+    if (self->epinfo->type != Ice_EndpointTypenRF24)
+        return false;
 
-/*     *size = nRF24_write(data, *size); */
-/*     return true; */
+    byte chunk_size = min(*size, radio->getPayloadSize());
+    bool acked = radio->write(data, chunk_size);
+    *size = acked ? chunk_size : 0;
+
+    print_dbg("Connection Send\n");
+    return acked;
 }
 
 bool
 nRF24Endpoint_Connection_dataReady(Ice_ConnectionPtr self, bool* ready) {
     trace();
 
-    // print_dbg("nrf DR called\n");
     if (self->epinfo->type != Ice_EndpointTypenRF24)
         return false;
 
-    /* *ready = nRF24_available(); */
-    *ready = false;
-
+    *ready = radio->available();
     return true;
 }
 
@@ -92,16 +91,13 @@ nRF24Endpoint_OptionsPtr
 _get_options_slot() {
     byte i;
 
-    nRF24Endpoint_OptionsPtr retval = NULL;
     for (i=0; i<MAX_NRF24_ENDPOINT_INSTANCES; i++) {
-        if (ep_options[i].used)
-            continue;
-        retval = &(ep_options[i]);
-	    break;
+        if (!ep_options[i].used)
+            return &(ep_options[i]);
     }
 
-    assert(retval != NULL && "Max number of endpoints reached!");
-    return retval;
+    assert(false && "Max number of endpoints reached!");
+    return NULL;
 }
 
 bool
@@ -120,16 +116,11 @@ nRF24Endpoint_EndpointInfo_init(
     self->options = options;
     options->used = true;
 
-    byte channel;
-    IceUtil_getByteParam(str_endp, &channel, 'c');
-    options->channel = 100;
-
-    FIXME: uncommenting the following line, causes errors!!!
-    // options->channel = channel;
+    IceUtil_getByteParam(str_endp, &(options->channel), 'c');
 
     for (byte i=0; i<6; i++)
         options->address[i] = 0;
-    // IceUtil_getStringParam(endpoint, (char*)options->address, 'a');
+    IceUtil_getStringParam(str_endp, (char*)options->address, 'a');
 
     Object_init((ObjectPtr)self);
     return true;
@@ -160,11 +151,11 @@ nRF24Endpoint_ObjectAdapter_activate(Ice_ObjectAdapterPtr self) {
     self->connection.fd = nRF24_init();
 
     // setup RF24 reading pipe, setup channel and address from adapter settings
-    // nRF24Endpoint_OptionsPtr options =
-    //     (nRF24Endpoint_OptionsPtr)self->epinfo.options;
-    // radio->setChannel(options->channel);
-    // radio->openReadingPipe(1, options->address);
-    // radio->startListening();
+    nRF24Endpoint_OptionsPtr options =
+        (nRF24Endpoint_OptionsPtr)self->epinfo.options;
+    radio->setChannel(options->channel);
+    radio->openReadingPipe(1, options->address);
+    radio->startListening();
 
     return true;
 }
@@ -173,31 +164,37 @@ bool
 nRF24Endpoint_ObjectPrx_init(
     Ice_ObjectPrxPtr self, Ice_EndpointType type, const char* strprx) {
 
-    return false;
-/*     trace(); */
+    trace();
 
-/*     if (type != Ice_EndpointTypenRF24) */
-/* 	return false; */
+    if (type != Ice_EndpointTypenRF24)
+	   return false;
 
-/*     Ice_Connection_init(&(self->connection), &(self->epinfo)); */
-/*     Ice_OutputStream_init(&(self->stream)); */
+    Ice_Connection_init(&(self->connection), &(self->epinfo));
+    Ice_OutputStream_init(&(self->stream));
+    nRF24Endpoint_EndpointInfo_init(&(self->epinfo), type, strprx);
+    Object_init((ObjectPtr)self);
 
-/*     nRF24Endpoint_EndpointInfo_init(&(self->epinfo), type, strprx); */
-
-/*     Object_init((ObjectPtr)self); */
-/*     return true; */
+    return true;
 }
 
 bool
 nRF24Endpoint_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
-    return false;
-/*     trace(); */
 
-/*     if (self->epinfo.type != Ice_EndpointTypenRF24) */
-/* 	return false; */
+    trace();
 
-/*     self->connection.fd = nRF24_init(); */
-/*     return true; */
+    if (self->epinfo.type != Ice_EndpointTypenRF24)
+        return false;
+
+    self->connection.fd = nRF24_init();
+
+    // setup RF24 writing pipe, setup channel and address from proxy settings
+    nRF24Endpoint_OptionsPtr options =
+        (nRF24Endpoint_OptionsPtr)self->epinfo.options;
+    radio->setChannel(options->channel);
+    radio->openWritingPipe(options->address);
+    radio->stopListening();
+
+    return true;
 }
 
 void

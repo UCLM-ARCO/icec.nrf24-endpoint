@@ -13,10 +13,10 @@ extern "C" {
 
 typedef struct nRF24Endpoint_Options {
     Object _base;
+    bool used;
 
     byte channel;
     byte address[6];
-    bool used;
 } nRF24Endpoint_Options;
 
 typedef nRF24Endpoint_Options* nRF24Endpoint_OptionsPtr;
