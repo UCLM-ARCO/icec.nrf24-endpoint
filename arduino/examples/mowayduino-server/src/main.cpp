@@ -4,31 +4,30 @@
 #include <SPI.h>
 #include <EEPROM.h>
 #include <RF24.h>
+#include <MowayduinoRobot.h>
 
-// #include <MowayduinoRobot.h>
 #include <IceC.h>
 #include <nRF24Endpoint.h>
 
 #include "robot.h"
 
 // These pins are for Arduino Nano
-#define RF_CE 7
-#define RF_CS 8
+// #define RF_CE 7
+// #define RF_CS 8
 
 // These pins are for Mowayduino robot
-// #define RF_CE 0
-// #define RF_CS 17
+#define RF_CE 0
+#define RF_CS 17
 
-// mowayduinorobot robot;
+mowayduinorobot robot;
 
 Ice_Communicator ic;
 Ice_ObjectAdapter adapter;
 Robot_Motion servant;
 
 void setup() {
-    Serial.begin(115200);
-    Serial.println("Booting...");
-    // robot.beginMowayduino();
+    robot.beginMowayduino();
+    robot.Ledsoff();
 
     /* init and setup communicator */
     Ice_initialize(&ic);
@@ -50,10 +49,12 @@ void loop() {
 
 void
 Robot_MotionI_forward(Robot_MotionPtr self, Ice_Int time) {
-    Serial.println("forward called!");
+    robot.Ledsoff();
+    robot.Greenon();
 }
 
 void
 Robot_MotionI_backward(Robot_MotionPtr self, Ice_Int time) {
-    Serial.println("backward called!");
+    robot.Ledsoff();
+    robot.Redon();
 }

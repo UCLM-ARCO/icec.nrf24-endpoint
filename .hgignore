@@ -13,3 +13,6 @@ arduino/examples/*/lib/IceC
 arduino/examples/*/lib/mowayduino
 arduino/examples/*/lib/RF24
 arduino/examples/*/src/robot.h
+
+tools/*/lib/IceC
+tools/*/lib/RF24

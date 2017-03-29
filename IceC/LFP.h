@@ -4,7 +4,7 @@
 #define _LFP_H_
 
 #include <Arduino.h>
-#include <IceC/IceC.h>
+#include <IceC/IceC.h>  // just for the assert 
 #include <RF24.h>
 
 #define LFP_MAGIC 'N'
