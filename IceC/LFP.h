@@ -12,11 +12,11 @@
 
 // Lightweight Fragmentation Protocol
 typedef struct LFPPacket {
-    byte magic;
-    byte node_id;
-    byte frame_size;
-    byte frame_id;
-    byte total_frames;
+    byte magic;          // 'N' (for Nordic RF24)
+    byte node_id;        // 'unique' node identifier
+    byte frame_size;     // size of payload, WITHOUT header
+    byte frame_id;       // identifier of this frame
+    byte total_frames;   // total amount of expected frames
 } LFPPacket;
 
 typedef LFPPacket* LFPPacketPtr;

@@ -49,12 +49,7 @@ nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType
     if (type != Ice_EndpointTypenRF24)
 	   return false;
 
-    self->size = LFP_read_packet(radio, self->data, MAX_MESSAGE_SIZE);
-
-    print_dbg("Message size: ");
-    printi_dbg(self->size);
-    print_dbg("\n");
-
+    self->size = LFP_read_packet(radio, self->data, MAX_MESSAGE_SIZE);    
     return true;
 }
 

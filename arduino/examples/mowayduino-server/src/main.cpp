@@ -49,11 +49,11 @@ void loop() {
 }
 
 void
-Robot_MotionI_forward(int time) {
-    print_dbg("forward called!\n");
+Robot_MotionI_forward(Robot_MotionPtr self, Ice_Int time) {
+    Serial.println("forward called!");
 }
 
 void
-Robot_MotionI_backward(int time) {
-    print_dbg("backward called!\n");
+Robot_MotionI_backward(Robot_MotionPtr self, Ice_Int time) {
+    Serial.println("backward called!");
 }

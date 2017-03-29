@@ -24,20 +24,19 @@ uint16_t LFP_read_packet(RF24* radio, byte* dst, uint16_t max_size) {
 
         // check that message will fit in size and copy packet payload
         uint32_t size = (uint32_t)*(buff + 10 + header_size);
-        assert(size <= min(max_size, radio_size) && "Too big message!");
+        assert(size <= max_size && "Too big message!");
 
         byte expected_node_id = packet->node_id;
         byte expected_frame = packet->frame_id;
         byte i = packet->total_frames - 1;
 
         do {
-            if (packet->node_id != expected_node_id)
-                continue;
-            if (packet->frame_id != expected_frame);
-                continue;
+            if (packet->node_id == expected_node_id &&
+                packet->frame_id == expected_frame) {
 
-            memcpy(dst, buff + header_size, packet->frame_size);
-            dst += packet->frame_size;
+                memcpy(dst, buff + header_size, packet->frame_size);
+                dst += packet->frame_size;
+            }
 
             // read next packet (if any)
             if (i) {
@@ -88,9 +87,18 @@ uint16_t LFP_write_packet(RF24* radio, byte* src, uint16_t size) {
 
     radio->stopListening();
     for (byte i=1; i<=total_frames; i++) {
-        WIP
+        packet->frame_size = chunk_size;
+        if (i == total_frames)
+            packet->frame_size = size % chunk_size;
+
+        packet->frame_id = i;
+        memcpy(
+            buff + sizeof(LFPPacket),
+            src + (i-1) * chunk_size,
+            packet->frame_size);
+        radio->write(buff, sizeof(LFPPacket) + packet->frame_size);
     }
     radio->startListening();
-    
+
     return size;
 }
