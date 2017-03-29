@@ -9,7 +9,7 @@ proxy should look like the following:
 
     Car -e 1.0 -d:nrf24 -c 100 -a car01
 
-See `example` dir for an example of its usage.
+See `example` dir for some examples of its usage.
 
 
 Arduino package

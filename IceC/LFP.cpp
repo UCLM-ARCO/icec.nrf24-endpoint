@@ -71,7 +71,26 @@ uint16_t LFP_write_packet(RF24* radio, byte* src, uint16_t size) {
         return size;
     }
 
-    WIP
+    // LFP needed, split payload on chunks and send them
+    byte chunk_size = radio->getPayloadSize() - sizeof(LFPPacket);
+    byte total_frames = size / chunk_size;
+    if (size % chunk_size)
+        total_frames++;
 
-    return 0;
+    randomSeed(analogRead(0));
+    byte node_id = random(255);
+
+    byte buff[32];
+    LFPPacketPtr packet = (LFPPacketPtr) buff;
+    packet->magic = LFP_MAGIC;
+    packet->node_id = node_id;
+    packet->total_frames = total_frames;
+
+    radio->stopListening();
+    for (byte i=1; i<=total_frames; i++) {
+        WIP
+    }
+    radio->startListening();
+    
+    return size;
 }
