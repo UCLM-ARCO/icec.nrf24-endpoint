@@ -1,4 +1,4 @@
-/* -*- mode: c; coding: utf-8 -*- */
+/* -*- mode: c++; coding: utf-8 -*- */
 
 #ifndef _nRF24ENDPOINT_ENDPOINT_H_
 #define _nRF24ENDPOINT_ENDPOINT_H_

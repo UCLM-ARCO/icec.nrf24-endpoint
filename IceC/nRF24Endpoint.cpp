@@ -1,9 +1,11 @@
-/* -*- mode: c; coding: utf-8 -*- */
+/* -*- mode: c++; coding: utf-8 -*- */
 
 #include <RF24.h>
 #include <Arduino.h>
 #include <IceC/IceUtil.h>
+
 #include "nRF24Endpoint.h"
+#include "LFP.h"
 
 #ifndef MAX_NRF24_ENDPOINT_INSTANCES
 #define MAX_NRF24_ENDPOINT_INSTANCES 3
@@ -42,34 +44,17 @@ nRF24Endpoint_getProtocolType(const char* proto, Ice_EndpointType* result) {
 
 bool
 nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType type) {
-    uint32_t size = 0;
+    trace();
 
     if (type != Ice_EndpointTypenRF24)
 	   return false;
 
-    /* first: read header, and get message size */
-    radio->read((byte*)self->data, 14);
-    self->size = 14;
-    size = (uint32_t)*(self->data + 10);
+    self->size = LFP_read_packet(radio, self->data, MAX_MESSAGE_SIZE);
 
     print_dbg("Message size: ");
-    printi_dbg(size);
+    printi_dbg(self->size);
     print_dbg("\n");
 
-    // FIXME: if message is bigger than 32, implement a fragmentation protocol
-    // 'N'
-    // node id (1 bye) - random, selected at boot
-    // size (1 bye) - this message payload's size
-    // frame identifier (1 byte)
-    // total count of frames (1 byte)
-    ---    
-
-    /* then: read as size specifies */
-    assert(size <= MAX_MESSAGE_SIZE && "Message too big!");
-    size -= 14;
-
-    radio->read((byte*)(self->data + 14), size);
-    self->size += size;
     return true;
 }
 
@@ -82,12 +67,8 @@ nRF24Endpoint_Connection_send(
     if (self->epinfo->type != Ice_EndpointTypenRF24)
         return false;
 
-    byte chunk_size = min(*size, radio->getPayloadSize());
-    bool acked = radio->write(data, chunk_size);
-    *size = acked ? chunk_size : 0;
-
-    print_dbg("Connection Send\n");
-    return acked;
+    *size = LFP_write_packet(radio, data, *size);
+    return true;
 }
 
 bool

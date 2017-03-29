@@ -1,0 +1,27 @@
+// -*- mode: c++; coding: utf-8 -*-
+
+#ifndef _LFP_H_
+#define _LFP_H_
+
+#include <Arduino.h>
+#include <IceC/IceC.h>
+#include <RF24.h>
+
+#define LFP_MAGIC 'N'
+#define LFP_MAX_WAITING_TIME 50
+
+// Lightweight Fragmentation Protocol
+typedef struct LFPPacket {
+    byte magic;
+    byte node_id;
+    byte frame_size;
+    byte frame_id;
+    byte total_frames;
+} LFPPacket;
+
+typedef LFPPacket* LFPPacketPtr;
+
+uint16_t LFP_read_packet(RF24* radio, byte* dst, uint16_t max_size);
+uint16_t LFP_write_packet(RF24* radio, byte* src, uint16_t size);
+
+#endif  // _LFP_H_
