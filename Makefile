@@ -1,5 +1,8 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
+# avoid copying hidden files
+CP = rsync -av --exclude=".*"
+
 all:
 
 arduino-package: ARDUINO_DIST=/tmp/icec-nrf24/arduino/nRF24Endpoint
@@ -7,8 +10,8 @@ arduino-package: clean
 	$(RM) -rf $(ARDUINO_DIST)
 
 	install -d $(ARDUINO_DIST)/src
-	cp -r arduino/examples $(ARDUINO_DIST)
-	cp -r IceC $(ARDUINO_DIST)/src/
+	$(CP) arduino/examples $(ARDUINO_DIST)
+	$(CP) IceC $(ARDUINO_DIST)/src/
 	install -m 644 IceC/nRF24Endpoint.h $(ARDUINO_DIST)/src/
 	install -m 644 arduino/keywords.txt $(ARDUINO_DIST)
 	install -m 644 arduino/library.properties $(ARDUINO_DIST)
@@ -20,4 +23,10 @@ arduino-package: clean
 clean:
 	find -name "*.o" -delete
 	find -name "*~" -delete
+	$(RM) -rf arduino/examples/mowayduino-client/lib/IceC \
+		  arduino/examples/mowayduino-client/lib/mowayduino \
+		  arduino/examples/mowayduino-client/lib/RF24 \
+	$(RM) -rf arduino/examples/mowayduino-server/lib/IceC \
+		  arduino/examples/mowayduino-server/lib/mowayduino \
+		  arduino/examples/mowayduino-server/lib/RF24
 	$(RM) -f *.zip
