@@ -11,8 +11,7 @@ arduino-package: clean
 
 	install -d $(ARDUINO_DIST)/src
 	$(CP) arduino/examples $(ARDUINO_DIST)
-	$(CP) IceC $(ARDUINO_DIST)/src/
-	install -m 644 IceC/nRF24Endpoint.h $(ARDUINO_DIST)/src/
+	$(CP) IceC/* $(ARDUINO_DIST)/src/
 	install -m 644 arduino/keywords.txt $(ARDUINO_DIST)
 	install -m 644 arduino/library.properties $(ARDUINO_DIST)
 
