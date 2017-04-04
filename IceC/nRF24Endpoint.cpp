@@ -26,7 +26,12 @@ nRF24_init() {
         radio = &_radio;
 
         radio->begin();
-        radio->setPALevel(RF24_PA_LOW);
+        radio->setDataRate(RF24_2MBPS);
+        radio->setCRCLength(RF24_CRC_16);
+        radio->setPayloadSize(32);
+        radio->setAutoAck(true);
+        radio->setRetries(10, 15);
+        radio->setPALevel(RF24_PA_HIGH);
     }
     return 1;
 }
@@ -49,7 +54,20 @@ nRF24Endpoint_InputStream_init(Ice_InputStreamPtr self, int fd, Ice_EndpointType
     if (type != Ice_EndpointTypenRF24)
 	   return false;
 
-    self->size = LFP_read_packet(radio, self->data, MAX_MESSAGE_SIZE);    
+    self->size = LFP_read_packet(radio, self->data, MAX_MESSAGE_SIZE);
+
+    // {
+    //     byte buff[radio->getPayloadSize()];
+    //     while (radio->available()) {
+    //         radio->read(buff, radio->getPayloadSize());
+    //         delay(50);
+    //     }
+    //     self->size = 10;
+    // }
+
+    // print_dbg("Packet received:\n");
+    // hexdump(self->data, self->size);
+
     return true;
 }
 
@@ -182,7 +200,6 @@ nRF24Endpoint_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
         (nRF24Endpoint_OptionsPtr)self->epinfo.options;
     radio->setChannel(options->channel);
     radio->openWritingPipe(options->address);
-    radio->stopListening();
 
     return true;
 }

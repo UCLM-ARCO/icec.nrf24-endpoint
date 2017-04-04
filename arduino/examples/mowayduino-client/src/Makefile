@@ -1,6 +1,6 @@
 # -*- mode: makefile-gmake; coding: utf-8 -*-
 
-SLICE = robot.h
+SLICE = robot.ice
 
 all: ${SLICE:%.ice=%.h}
 

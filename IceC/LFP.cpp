@@ -31,6 +31,10 @@ uint16_t LFP_read_packet(RF24* radio, byte* dst, uint16_t max_size) {
         byte i = packet->total_frames - 1;
 
         do {
+            // print_dbg(" - frame id: ");
+            // printi_dbg(packet->frame_id);
+            // print_dbg("\n");
+
             if (packet->node_id == expected_node_id &&
                 packet->frame_id == expected_frame) {
 
@@ -45,18 +49,25 @@ uint16_t LFP_read_packet(RF24* radio, byte* dst, uint16_t max_size) {
                     delay(1);
 
                 // if message does not arrive on time, discard it
-                if (!radio->available())
+                if (!radio->available()) {
+                    // print_dbg(" - not enough packets!\n");
                     return 0;
+                }
                 radio->read(buff, radio_size);
             }
             expected_frame++;
 
         } while (i--);
+        // print_dbg(" - return size: ");
+        // printi_dbg(size);
+        // print_dbg("\n");
+
         return size;
     }
 
     // bad message format, discard
     else {
+        // print_dbg(" - bad message\n");
         return 0;
     }
 }
