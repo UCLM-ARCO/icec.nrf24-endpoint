@@ -81,7 +81,7 @@ uint16_t LFP_write_packet(RF24* radio, byte* src, uint16_t size) {
         return size;
     }
 
-    // LFP needed, split payload on chunks and send them
+    // LFP needed, split payload into chunks and send them
     byte chunk_size = radio->getPayloadSize() - sizeof(LFPPacket);
     byte total_frames = size / chunk_size;
     if (size % chunk_size)
@@ -107,7 +107,11 @@ uint16_t LFP_write_packet(RF24* radio, byte* src, uint16_t size) {
             buff + sizeof(LFPPacket),
             src + (i-1) * chunk_size,
             packet->frame_size);
-        radio->write(buff, sizeof(LFPPacket) + packet->frame_size);
+
+        if (!radio->write(buff, sizeof(LFPPacket) + packet->frame_size)) {
+            radio->startListening();
+            return 0;
+        }
     }
     radio->startListening();
 

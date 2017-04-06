@@ -80,6 +80,10 @@ nRF24Endpoint_Connection_send(
     if (self->epinfo->type != Ice_EndpointTypenRF24)
         return false;
 
+    // print_dbg("- send ");
+    // printi_dbg(*size);
+    // print_dbg(" bytes\n");
+
     *size = LFP_write_packet(radio, data, *size);
     return true;
 }
@@ -198,8 +202,15 @@ nRF24Endpoint_ObjectPrx_connect(Ice_ObjectPrxPtr self) {
     // setup RF24 writing pipe, setup channel and address from proxy settings
     nRF24Endpoint_OptionsPtr options =
         (nRF24Endpoint_OptionsPtr)self->epinfo.options;
+
     radio->setChannel(options->channel);
     radio->openWritingPipe(options->address);
+
+    // print_dbg("- set channel: ");
+    // printi_dbg(options->channel);
+    // print_dbg("\n- set address: '");
+    // print_dbg(options->address);
+    // print_dbg("'\n");
 
     return true;
 }
