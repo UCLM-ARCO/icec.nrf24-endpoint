@@ -1,0 +1,5 @@
+: DO NOT EDIT, it will be overwritten!
+: destination | routerId | endpoints | mode
+: --------------------------------------------------
+5F02 | 128 | 5F02 | tcp -h 127.0.0.1 -p 36115 -t 60000 | t
+5F02 | 128 | 5F02 | tcp -h 127.0.0.1 -p 36115 -t 60000 | t
